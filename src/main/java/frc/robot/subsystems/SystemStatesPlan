@@ -1,0 +1,124 @@
+Welp TODO List Here FOlks:
+^this seems like it was made by Grant Huey
+Poll: Pancakes: ||||
+      Waffles:
+
+
+Poll: Krish:
+      Teacher:||||
+
+
+1) What does it take to wire up non addressable LEDS w/ ROBORIO?
+    What colors, any analog possible through PWM? 
+    Want something pretty, just not individually addressable, the single ones
+    Neeed it to connect straight to roboRIO 
+2) Get all the ticks per inch values AND soft limit estimates (estimate low plz :D )
+    Lift - include gearbox, radius of sprocket, 
+        and stage conversion (I think 1 inch of chain = 2 inch on lift???)
+    Wrist - Gear box would be ticks per degrees, whoever does this go in the program
+        and rename all places of ticks per inch ONLY FOR WRIST and convert to degrees 
+    Plate Center - gear box, Belt pulley
+    Suspension - gear box, belt (see if pullies different sizes), incline for the threading on bar
+3) Get a reading from the LIDAR sensors
+    Double check wiring
+    Make sure arduino doesn't short
+    Run tester program
+    Test the plate centering code
+
+4) Make a kick butt test program
+    Tests for each subsystem individually using selector in dashboard
+    Teleop for each subsystem action 
+    Print outs like everywhere, include like all the info
+    But have annoying prints turn off when not in test mode 
+    Try to make sure they don't spam soo much, maybe make it print
+    out about every other time, I need this to be flexible and organized for quick
+    changes and testing between matches 
+5) Figure out what the heck goes in the stupid superstructure
+    Want to make sure plate centered when using Balls
+    Make Balls low when using plate
+    Make plate and Balls low and center when Climbing
+    Is superstructure necessary???? - no just disable drive
+    base when you are climbing in ****teleOP**** code :D 
+
+6) How to run an Autonomous teleop based
+
+    Initialize it:
+        try {
+                CrashTracker.logAutoInit();
+
+                System.out.println("Auto start timestamp: " + Timer.getFPGATimestamp());
+
+                if (mAutoModeExecuter != null) {
+                    mAutoModeExecuter.stop();
+                }
+
+                zeroAllSensors();
+                mSuperstructure.setWantedState(Superstructure.WantedState.IDLE);
+            
+                mAutoModeExecuter = null;
+
+            
+                
+                mEnabledLooper.start();
+                //mSuperstructure.reloadConstants();
+                mAutoModeExecuter = new AutoModeExecuter();
+                mAutoModeExecuter.setAutoMode(AutoModeSelector.getSelectedAutoMode());
+                mAutoModeExecuter.start();
+
+            } catch (Throwable t) {
+                CrashTracker.logThrowableCrash(t);
+                throw t;
+            }
+    Stop it:
+        if (mAutoModeExecuter != null) {
+            mAutoModeExecuter.stop();
+        }
+        mAutoModeExecuter = null;
+
+7) Is the silly sandstorm in the auto period?
+    Maybe look in rules manual?
+    Or the forums...
+8) What are your goals with the LED lights
+    Plate Mechanism:
+        Aligned: flash green
+        Can't Reach: flash red
+        Deploying: flash blue
+        Centered: solid green
+        centering, aligning - flash blue 
+        homing: solid Red
+    Ball control helper:
+        At position: solid - green
+        Moving: flash blue 
+        Intake/Shoot: Flash green 
+        homing: solid red 
+    Suspension:
+        Homing - red if unique one
+        If unique - idle green  
+        Climbing: entire robot flash blue 
+        Done: flash green 
+        MAKE LED an auto command
+    Stop/default command:
+        solid - blue, everything 
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+
+
+
+
+
+
+
+
+
+
