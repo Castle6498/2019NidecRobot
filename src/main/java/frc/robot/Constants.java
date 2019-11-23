@@ -11,42 +11,16 @@ public class Constants extends ConstantsBase {
     
        
     // Drive
-         //Talon
-         public static final double regularTurnReduction=.85;
-
-        public static final double kDriveSwivelReduction=1;
-
-
-        public static final int kDriveLeftTalonID=9;
-        public static final double kDriveLeftTalonP=.8;//.15
-        public static final double kDriveLeftTalonI=0;
-        public static final double kDriveLeftTalonD=0;
         
+        //Sparks
+            public static final int kDriveLeftSparkPort=0; //TODO: Set drive ports
+            public static final int kDriveRightSparkPort=1;
 
-        public static final double kDriveLeftMaxSpeed=2350;
-        public static final double kDriveLeftTalonF=(1.0*1023)/kDriveLeftMaxSpeed;
+            public static final double regularTurnReduction=.85;
 
+            public static final double kDriveSwivelReduction=1;
+      
 
-        public static final int kDriveRightTalonID=3;
-
-       public static final double kDriveRightTalonP=kDriveLeftTalonP;
-        public static final double kDriveRightTalonI=kDriveLeftTalonI;
-        public static final double kDriveRightTalonD=kDriveLeftTalonD;
-        
-        public static final double kDriveRightMaxSpeed=2800;
-        public static final double kDriveRightTalonF=(1.0*1023)/kDriveRightMaxSpeed;
-
-        public static final double kDriveTicksPerInch=(4096)/(Math.PI*6);; //TODO: get wheel diam
-        public static final double kDriveTolerance=5;
-
-        //Victor
-        public static final int kDriveLeftVictorID=2;
-        public static final int kDriveRightVictorID=1;
-
-        public static final int kDriveLeftTwoVictorID=12;
-        public static final int kDriveRightTwoVictorID=4;
-
-        public static final int kDriverShifterPort=3;
     //Ball Control Helper 
         //PickUp
             public static final double kLiftPickUpFloor = 0;
