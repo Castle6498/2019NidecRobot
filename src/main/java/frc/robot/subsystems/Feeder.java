@@ -21,15 +21,15 @@ import edu.wpi.first.wpilibj.DigitalInput;
  * 
  *
  */
-public class Intake extends Subsystem {
+public class Feeder extends Subsystem {
     
    
 
-    private static Intake sInstance = null;
+    private static Feeder sInstance = null;
 
-    public static Intake getInstance() {
+    public static Feeder getInstance() {
         if (sInstance == null) {
-            sInstance = new Intake();
+            sInstance = new Feeder();
         }
         return sInstance;
     }
@@ -37,7 +37,7 @@ public class Intake extends Subsystem {
     private TalonSRX mTalon; 
     private DigitalInput mPhotoeye;
 
-    public Intake() {
+    public Feeder() {
         
          //Talon Initialization 
          mTalon = CANTalonFactory.createTalon(Constants.kIntakeTalonID, 
@@ -71,7 +71,7 @@ public class Intake extends Subsystem {
         @Override
         public void onStart(double timestamp) {
             stop();
-            synchronized (Intake.this) {
+            synchronized (Feeder.this) {
                 mSystemState = SystemState.IDLE;
                 mStateChanged = true;
                 mCurrentStateStartTime = timestamp;
@@ -81,7 +81,7 @@ public class Intake extends Subsystem {
 
         @Override
         public void onLoop(double timestamp) {
-            synchronized (Intake.this) {
+            synchronized (Feeder.this) {
                 SystemState newState;
                 switch (mSystemState) {
                 case IDLE:
