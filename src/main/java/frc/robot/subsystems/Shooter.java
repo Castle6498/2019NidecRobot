@@ -46,8 +46,8 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
  * 
  * @see Subsystem.java
  */
-public class Flywheel extends Subsystem {
-    private static Flywheel mInstance = null;
+public class Shooter extends Subsystem {
+    private static Shooter mInstance = null;
 
     public static class ShooterDebugOutput {
         public double timestamp;
@@ -62,9 +62,9 @@ public class Flywheel extends Subsystem {
     public static int kSpinUpProfile = 0;
     public static int kHoldProfile = 1;
 
-    public static Flywheel getInstance() {
+    public static Shooter getInstance() {
         if (mInstance == null) {
-            mInstance = new Flywheel();
+            mInstance = new Shooter();
         }
         return mInstance;
     }
@@ -94,7 +94,7 @@ public class Flywheel extends Subsystem {
 
     
 
-    private Flywheel() {
+    private Shooter() {
         mMasterSrx = CANTalonFactory.createTalon(Constants.kShooterMasterId, false, NeutralMode.Coast, FeedbackDevice.CTRE_MagEncoder_Relative, 0, true);
         
         //mMasterSrx.changeControlMode(TalonControlMode.Voltage);
@@ -179,7 +179,7 @@ public class Flywheel extends Subsystem {
         enabledLooper.register(new Loop() {
             @Override
             public void onStart(double timestamp) {
-                synchronized (Flywheel.this) {
+                synchronized (Shooter.this) {
                     mControlMethod = ControlMethod.OPEN_LOOP;
                     mKfEstimator.clear();
                     mOnTarget = false;
@@ -189,7 +189,7 @@ public class Flywheel extends Subsystem {
 
             @Override
             public void onLoop(double timestamp) {
-                synchronized (Flywheel.this) {
+                synchronized (Shooter.this) {
                     if (mControlMethod != ControlMethod.OPEN_LOOP) {
                         handleClosedLoop(timestamp);
                         mCSVWriter.add(mDebug);
@@ -308,14 +308,15 @@ public class Flywheel extends Subsystem {
             resetHold();
         } else if (mControlMethod == ControlMethod.HOLD_WHEN_READY) {
             final double abs_error = Math.abs(speed - mSetpointRpm);
-            final boolean on_target_now = mOnTarget ? abs_error < Constants.kShooterStopOnTargetRpm
-                    : abs_error < Constants.kShooterStartOnTargetRpm;
+            final boolean on_target_now = mOnTarget ? abs_error < Constants.kShooterStopOnTargetRpm //Based on if has already gotten on target or not
+                    : abs_error < Constants.kShooterStartOnTargetRpm;                           //Small threshold to enter on target now mode, but larger
+                                                                                                //Threshold must be broken to become off target
             if (on_target_now && !mOnTarget) {
                 // First cycle on target.
                 mOnTargetStartTime = timestamp;
                 mOnTarget = true;
             } else if (!on_target_now) {
-                resetHold();
+                resetHold(); //Not on target, get rid of kf values, set onTarget to false
             }
 
             if (mOnTarget) {

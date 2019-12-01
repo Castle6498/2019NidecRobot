@@ -26,6 +26,12 @@ public class Constants extends ConstantsBase {
 
     
     //Flywheel
+         // Shooter tuning parameters
+            public static boolean kIsShooterTuning = false; //SET TRUE if you want to tune shooter basically starts at tuning floor and steps by set increment
+            public static double kShooterTuningRpmFloor = 2900;   //min tuning rpm
+            public static double kShooterTuningRpmCeiling = 3500;  //max tuning rpm
+            public static double kShooterTuningRpmStep = 50; //tuning increment
+            public static double kShooterTuningRpm = 3500.0; //this doesn't appear to be used ever, probably an old setting
         // Shooter constants
             public static final int kShooterMasterId = 2;//TODO: Change this
         // Shooter gains
@@ -52,8 +58,8 @@ public class Constants extends ConstantsBase {
             public static double kShooterStartOnTargetRpm = 50.0;
             public static double kShooterStopOnTargetRpm = 150.0;
             public static int kShooterKfBufferSize = 20;
-            public static int kShooterMinOnTargetSamples = 20; // Should be <= kShooterKvBufferSize
-
+            public static int kShooterMinOnTargetSamples = 20; // Should be <= kShooterKvBufferSize because it will never get more than the buffer can hold
+                                                                //The minimum kf samples required before it can go to hold
             public static int kShooterJamBufferSize = 30;
             public static double kShooterDisturbanceThreshold = 25;
             public static double kShooterJamTimeout = 1.5; // In secs
@@ -135,7 +141,10 @@ public class Constants extends ConstantsBase {
  
     //LED -------------------------------------------------------------------------------
 
-        public static final int[] kPlateLEDPorts = {4,5,6};
+        
+        // Digital Outputs
+            public static int kGreenLEDId = 9;//TODO: change led ports
+            public static int kRangeLEDId = 8;
     
 
     
