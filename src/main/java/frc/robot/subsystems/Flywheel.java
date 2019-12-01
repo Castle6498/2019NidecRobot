@@ -1,23 +1,31 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.CAN;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import com.ctre.CANTalon;
 
-import com.team254.frc2017.Constants;
-import com.team254.frc2017.RobotState;
-import com.team254.frc2017.ShooterAimingParameters;
-import com.team254.frc2017.loops.Loop;
-import com.team254.frc2017.loops.Looper;
-import com.team254.lib.util.CircularBuffer;
-import com.team254.lib.util.ReflectingCSVWriter;
-import com.team254.lib.util.Util;
-import com.team254.lib.util.drivers.CANTalonFactory;
+import frc.robot.Constants;
+//import frc.robot.RobotState;
+//import frc.robot.ShooterAimingParameters;
+import frc.robot.loops.Loop;
+import frc.robot.loops.Looper;
+import frc.lib.util.CircularBuffer;
+import frc.lib.util.ReflectingCSVWriter;
+import frc.lib.util.Util;
+import frc.lib.util.drivers.Talon.CANTalonFactory;
 
 import java.util.Arrays;
 import java.util.Optional;
+
+import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
+import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 /**
  * The shooter subsystem consists of 4 775 Pro motors driving twin backspin flywheels. When run in reverse, these motors
@@ -68,7 +76,7 @@ public class Flywheel extends Subsystem {
         HOLD, // switch to pure kF control
     }
 
-    private final CANTalon mRightMaster, mRightSlave, mLeftSlave1, mLeftSlave2;
+    private final TalonSRX mMasterSrx;
 
     private ControlMethod mControlMethod;
     private double mSetpointRpm;
@@ -84,29 +92,32 @@ public class Flywheel extends Subsystem {
 
     private final ReflectingCSVWriter<ShooterDebugOutput> mCSVWriter;
 
+    
+
     private Flywheel() {
-        mRightMaster = CANTalonFactory.createDefaultTalon(Constants.kRightShooterMasterId);
-        mRightMaster.changeControlMode(CANTalon.TalonControlMode.Voltage);
-        mRightMaster.setFeedbackDevice(CANTalon.FeedbackDevice.CtreMagEncoder_Relative);
-        mRightMaster.reverseSensor(true);
-        mRightMaster.reverseOutput(false);
-        mRightMaster.enableBrakeMode(false);
-        mRightMaster.SetVelocityMeasurementPeriod(CANTalon.VelocityMeasurementPeriod.Period_10Ms);
-        mRightMaster.SetVelocityMeasurementWindow(32);
-        mRightMaster.setNominalClosedLoopVoltage(12);
+        mMasterSrx = CANTalonFactory.createTalon(Constants.kShooterMasterId, false, NeutralMode.Coast, FeedbackDevice.CTRE_MagEncoder_Relative, 0, true);
+        
+        //mMasterSrx.changeControlMode(TalonControlMode.Voltage);
+     
+        
+        
+        mMasterSrx.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms);
+        mMasterSrx.configVelocityMeasurementWindow(32);
+        mMasterSrx.configVoltageCompSaturation(12);
+        //mMasterSrx.configNominalClosedLoopVoltage(12);
+        mMasterSrx.enableVoltageCompensation(true);//TODO: new thing
 
-        mRightMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.General, 2);
-        mRightMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.AnalogTempVbat, 2);
+        mMasterSrx.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 2);
+        mMasterSrx.setStatusFramePeriod(StatusFrameEnhanced.Status_4_AinTempVbat, 2);
 
-        CANTalon.FeedbackDeviceStatus sensorPresent = mRightMaster
-                .isSensorPresent(CANTalon.FeedbackDevice.CtreMagEncoder_Relative);
-        if (sensorPresent != CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent) {
-            DriverStation.reportError("Could not detect shooter encoder: " + sensorPresent, false);
+
+        ErrorCode e = mMasterSrx.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        
+        if (e== ErrorCode.SensorNotPresent) {
+            DriverStation.reportError("Could not detect shooter encoder: " + e, false);//TODO: test encoder not being there maybe
         }
 
-        mRightSlave = makeSlave(Constants.kRightShooterSlaveId, false);
-        mLeftSlave1 = makeSlave(Constants.kLeftShooterSlave1Id, true);
-        mLeftSlave2 = makeSlave(Constants.kLeftShooterSlave2Id, true);
+       
 
         refreshControllerConsts();
 
@@ -122,21 +133,21 @@ public class Flywheel extends Subsystem {
      * Load PIDF profiles onto the master talon
      */
     public void refreshControllerConsts() {
-        mRightMaster.setProfile(kSpinUpProfile);
-        mRightMaster.setP(Constants.kShooterTalonKP);
-        mRightMaster.setI(Constants.kShooterTalonKI);
-        mRightMaster.setD(Constants.kShooterTalonKD);
-        mRightMaster.setF(Constants.kShooterTalonKF);
-        mRightMaster.setIZone(Constants.kShooterTalonIZone);
+        
+        mMasterSrx.config_kP(kSpinUpProfile, Constants.kShooterTalonKP);
+        mMasterSrx.config_kI(kSpinUpProfile, Constants.kShooterTalonKI);
+        mMasterSrx.config_kD(kSpinUpProfile, Constants.kShooterTalonKD);
+        mMasterSrx.config_kF(kSpinUpProfile, Constants.kShooterTalonKF);
+        mMasterSrx.config_IntegralZone(kSpinUpProfile, Constants.kShooterTalonIZone);
 
-        mRightMaster.setProfile(kHoldProfile);
-        mRightMaster.setP(0.0);
-        mRightMaster.setI(0.0);
-        mRightMaster.setD(0.0);
-        mRightMaster.setF(Constants.kShooterTalonKF);
-        mRightMaster.setIZone(0);
+        
+        mMasterSrx.config_kP(kHoldProfile, 0.0);
+        mMasterSrx.config_kI(kHoldProfile, 0.0);
+        mMasterSrx.config_kD(kHoldProfile, 0.0);
+        mMasterSrx.config_kF(kHoldProfile, Constants.kShooterTalonKF);
+        mMasterSrx.config_IntegralZone(kHoldProfile, 0);
 
-        mRightMaster.setVoltageRampRate(Constants.kShooterRampRate);
+        mMasterSrx.configClosedloopRamp(Constants.kShooterRampRate);
     }
 
     @Override
@@ -144,7 +155,7 @@ public class Flywheel extends Subsystem {
         double current_rpm = getSpeedRpm();
         SmartDashboard.putNumber("shooter_speed_talon", current_rpm);
         SmartDashboard.putNumber("shooter_speed_error", mSetpointRpm - current_rpm);
-        SmartDashboard.putNumber("shooter_output_voltage", mRightMaster.getOutputVoltage());
+        SmartDashboard.putNumber("shooter_output_voltage", mMasterSrx.getMotorOutputVoltage());
         SmartDashboard.putNumber("shooter_setpoint", mSetpointRpm);
 
         SmartDashboard.putBoolean("shooter on target", isOnTarget());
@@ -201,14 +212,14 @@ public class Flywheel extends Subsystem {
     /**
      * Run the shooter in open loop, used for climbing
      */
-    public synchronized void setOpenLoop(double voltage) {
+    public synchronized void setOpenLoop(double voltage) {//TODO: change open loop to percent output
         if (mControlMethod != ControlMethod.OPEN_LOOP) {
             mControlMethod = ControlMethod.OPEN_LOOP;
-            mRightMaster.changeControlMode(CANTalon.TalonControlMode.Voltage);
-            mRightMaster.setCurrentLimit(Constants.kShooterOpenLoopCurrentLimit);
-            mRightMaster.EnableCurrentLimit(true);
+            //mRightMaster.changeControlMode(CANTalon.TalonControlMode.Voltage);
+            mMasterSrx.configPeakCurrentLimit(Constants.kShooterOpenLoopCurrentLimit);
+            mMasterSrx.enableCurrentLimit(true);
         }
-        mRightMaster.set(voltage);
+        mMasterSrx.set(ControlMode.PercentOutput,voltage);
     }
 
     /**
@@ -236,11 +247,11 @@ public class Flywheel extends Subsystem {
      */
     private void configureForSpinUp() {
         mControlMethod = ControlMethod.SPIN_UP;
-        mRightMaster.changeControlMode(CANTalon.TalonControlMode.Speed);
-        mRightMaster.setProfile(kSpinUpProfile);
-        mRightMaster.EnableCurrentLimit(false);
-        mRightMaster.DisableNominalClosedLoopVoltage();
-        mRightMaster.setVoltageRampRate(Constants.kShooterRampRate);
+       // mRightMaster.changeControlMode(CANTalon.TalonControlMode.Speed);
+        mMasterSrx.selectProfileSlot(kSpinUpProfile, 0);
+        mMasterSrx.enableCurrentLimit(false);
+        mMasterSrx.enableVoltageCompensation(false);
+        mMasterSrx.configClosedloopRamp(Constants.kShooterRampRate);
     }
 
     /**
@@ -248,11 +259,11 @@ public class Flywheel extends Subsystem {
      */
     private void configureForHoldWhenReady() {
         mControlMethod = ControlMethod.HOLD_WHEN_READY;
-        mRightMaster.changeControlMode(CANTalon.TalonControlMode.Speed);
-        mRightMaster.setProfile(kSpinUpProfile);
-        mRightMaster.EnableCurrentLimit(false);
-        mRightMaster.DisableNominalClosedLoopVoltage();
-        mRightMaster.setVoltageRampRate(Constants.kShooterRampRate);
+        //mRightMaster.changeControlMode(CANTalon.TalonControlMode.Speed);
+        mMasterSrx.selectProfileSlot(kSpinUpProfile, 0);
+        mMasterSrx.enableCurrentLimit(false);
+        mMasterSrx.enableVoltageCompensation(false);
+        mMasterSrx.configClosedloopRamp(Constants.kShooterRampRate);
     }
 
     /**
@@ -260,12 +271,12 @@ public class Flywheel extends Subsystem {
      */
     private void configureForHold() {
         mControlMethod = ControlMethod.HOLD;
-        mRightMaster.changeControlMode(CANTalon.TalonControlMode.Speed);
-        mRightMaster.setProfile(kHoldProfile);
-        mRightMaster.EnableCurrentLimit(false);
-        mRightMaster.setNominalClosedLoopVoltage(12.0);
-        mRightMaster.setF(mKfEstimator.getAverage());
-        mRightMaster.setVoltageRampRate(Constants.kShooterHoldRampRate);
+        //mRightMaster.changeControlMode(CANTalon.TalonControlMode.Speed);
+        mMasterSrx.selectProfileSlot(kHoldProfile, 0);
+        mMasterSrx.enableCurrentLimit(false);
+        mMasterSrx.configVoltageCompSaturation(12.0);
+        mMasterSrx.config_kF(kHoldProfile, mKfEstimator.getAverage());
+        mMasterSrx.configClosedloopRamp(Constants.kShooterHoldRampRate);
     }
 
     private void resetHold() {
@@ -288,12 +299,12 @@ public class Flywheel extends Subsystem {
      */
     private void handleClosedLoop(double timestamp) {
         final double speed = getSpeedRpm();
-        final double voltage = mRightMaster.getOutputVoltage();
+        final double voltage = mMasterSrx.getMotorOutputVoltage();
         mLastRpmSpeed = speed;
 
         // See if we should be spinning up or holding.
         if (mControlMethod == ControlMethod.SPIN_UP) {
-            mRightMaster.set(mSetpointRpm);
+            mMasterSrx.set(ControlMode.Velocity, mSetpointRpm);
             resetHold();
         } else if (mControlMethod == ControlMethod.HOLD_WHEN_READY) {
             final double abs_error = Math.abs(speed - mSetpointRpm);
@@ -314,7 +325,7 @@ public class Flywheel extends Subsystem {
             if (mKfEstimator.getNumValues() >= Constants.kShooterMinOnTargetSamples) {
                 configureForHold();
             } else {
-                mRightMaster.set(mSetpointRpm);
+                mMasterSrx.set(ControlMode.Velocity, mSetpointRpm);
             }
         }
         // No else because we may have changed control methods above.
@@ -322,7 +333,7 @@ public class Flywheel extends Subsystem {
             // Update Kv if we exceed our target velocity. As the system heats up, drag is reduced.
             if (speed > mSetpointRpm) {
                 mKfEstimator.addValue(estimateKf(speed, voltage));
-                mRightMaster.setF(mKfEstimator.getAverage());
+                mMasterSrx.config_kF(kHoldProfile, mKfEstimator.getAverage());
             }
         }
         mDebug.timestamp = timestamp;
@@ -331,12 +342,12 @@ public class Flywheel extends Subsystem {
         mDebug.voltage = voltage;
         mDebug.control_method = mControlMethod;
         mDebug.kF = mKfEstimator.getAverage();
-        Optional<ShooterAimingParameters> params = RobotState.getInstance().getAimingParameters();
-        if (params.isPresent()) {
-            mDebug.range = params.get().getRange();
-        } else {
-            mDebug.range = 0;
-        }
+       // Optional<ShooterAimingParameters> params = RobotState.getInstance().getAimingParameters();
+      //  if (params.isPresent()) {
+            mDebug.range = 0.0;//params.get().getRange();
+      //  } else {
+       //     mDebug.range = 0;
+       // }
     }
 
     public synchronized double getSetpointRpm() {
@@ -344,15 +355,10 @@ public class Flywheel extends Subsystem {
     }
 
     private double getSpeedRpm() {
-        return mRightMaster.getSpeed();
-    }
+        return mMasterSrx.getSelectedSensorVelocity();//TODO: could have to convert everything to rpm's
+    }                                                      //thing is it was previously just getSpeed()
 
-    private static CANTalon makeSlave(int talonId, boolean flipOutput) {
-        CANTalon slave = CANTalonFactory.createPermanentSlaveTalon(talonId, Constants.kRightShooterMasterId);
-        slave.reverseOutput(flipOutput);
-        slave.enableBrakeMode(false);
-        return slave;
-    }
+   
 
     public synchronized boolean isOnTarget() {
         return mControlMethod == ControlMethod.HOLD;
@@ -372,55 +378,21 @@ public class Flywheel extends Subsystem {
         final double kCurrentThres = 0.5;
         final double kRpmThres = 1200;
 
-        mRightMaster.changeControlMode(CANTalon.TalonControlMode.Voltage);
-        mRightSlave.changeControlMode(CANTalon.TalonControlMode.Voltage);
-        mLeftSlave1.changeControlMode(CANTalon.TalonControlMode.Voltage);
-        mLeftSlave2.changeControlMode(CANTalon.TalonControlMode.Voltage);
-
-        mRightMaster.set(6.0f);
+       // mMasterSrx.changeControlMode(CANTalon.TalonControlMode.Voltage);
+       
+        mMasterSrx.enableVoltageCompensation(true);
+       mMasterSrx.set(ControlMode.PercentOutput, 1.0f);
         Timer.delay(4.0);
-        final double currentRightMaster = mRightMaster.getOutputCurrent();
-        final double rpmMaster = mRightMaster.getSpeed();
-        mRightMaster.set(0.0f);
+        final double currentRightMaster = mMasterSrx.getOutputCurrent();
+        final double rpmMaster = mMasterSrx.getSelectedSensorVelocity();
+        mMasterSrx.set(ControlMode.PercentOutput, 0.0f);
 
         Timer.delay(2.0);
 
-        mRightSlave.set(6.0f);
-        Timer.delay(4.0);
-        final double currentRightSlave = mRightSlave.getOutputCurrent();
-        final double rpmRightSlave = mRightMaster.getSpeed();
-        mRightSlave.set(0.0f);
-
-        Timer.delay(2.0);
-
-        mLeftSlave1.set(-6.0f);
-        Timer.delay(4.0);
-        final double currentLeftSlave1 = mLeftSlave1.getOutputCurrent();
-        final double rpmLeftSlave1 = mRightMaster.getSpeed();
-        mLeftSlave1.set(0.0f);
-
-        Timer.delay(2.0);
-
-        mLeftSlave2.set(-6.0f);
-        Timer.delay(4.0);
-        final double currentLeftSlave2 = mLeftSlave2.getOutputCurrent();
-        final double rpmLeftSlave2 = mRightMaster.getSpeed();
-        mLeftSlave2.set(0.0f);
-
-        mRightSlave.changeControlMode(CANTalon.TalonControlMode.Follower);
-        mLeftSlave1.changeControlMode(CANTalon.TalonControlMode.Follower);
-        mLeftSlave2.changeControlMode(CANTalon.TalonControlMode.Follower);
-
-        mRightSlave.set(Constants.kRightShooterMasterId);
-        mLeftSlave1.set(Constants.kRightShooterMasterId);
-        mLeftSlave2.set(Constants.kRightShooterMasterId);
-
-        System.out.println("Shooter Right Master Current: " + currentRightMaster + " Shooter Right Slave Current: "
-                + currentRightSlave);
-        System.out.println("Shooter Left Slave One Current: " + currentLeftSlave1 + " Shooter Left Slave Two Current: "
-                + currentLeftSlave2);
-        System.out.println("Shooter RPM Master: " + rpmMaster + " RPM Right slave: " + rpmRightSlave
-                + " RPM Left Slave 1: " + rpmLeftSlave1 + " RPM Left Slave 2: " + rpmLeftSlave2);
+       
+        System.out.println("Shooter Right Master Current: " + currentRightMaster);
+       
+        System.out.println("Shooter RPM Master: " + rpmMaster);
 
         boolean failure = false;
 
@@ -429,50 +401,10 @@ public class Flywheel extends Subsystem {
             System.out.println("!!!!!!!!!!!!!!!!!! Shooter Right Master Current Low !!!!!!!!!!");
         }
 
-        if (currentRightSlave < kCurrentThres) {
-            failure = true;
-            System.out.println("!!!!!!!!!!!!!!!!!! Shooter Right Slave Current Low !!!!!!!!!!");
-        }
-
-        if (currentLeftSlave1 < kCurrentThres) {
-            failure = true;
-            System.out.println("!!!!!!!!!!!!!!!!!! Shooter Left Slave One Current Low !!!!!!!!!!");
-        }
-
-        if (currentLeftSlave2 < kCurrentThres) {
-            failure = true;
-            System.out.println("!!!!!!!!!!!!!!!!!! Shooter Left Slave Two Current Low !!!!!!!!!!");
-        }
-
-        if (!Util.allCloseTo(Arrays.asList(currentRightMaster, currentRightSlave, currentLeftSlave1,
-                currentLeftSlave2), currentRightMaster, 5.0)) {
-            failure = true;
-            System.out.println("!!!!!!!!!!!!!!!!!! Shooter currents different !!!!!!!!!!!!!!!!!");
-        }
-
+       
         if (rpmMaster < kRpmThres) {
             failure = true;
             System.out.println("!!!!!!!!!!!!!!!!!! Shooter Master RPM Low !!!!!!!!!!!!!!!!!!!!!!!");
-        }
-
-        if (rpmRightSlave < kRpmThres) {
-            failure = true;
-            System.out.println("!!!!!!!!!!!!!!!!!! Shooter Right Slave RPM Low !!!!!!!!!!!!!!!!!!!!!!!");
-        }
-
-        if (rpmLeftSlave1 < kRpmThres) {
-            failure = true;
-            System.out.println("!!!!!!!!!!!!!!!!!! Shooter Left Slave1 RPM Low !!!!!!!!!!!!!!!!!!!!!!!");
-        }
-
-        if (rpmLeftSlave2 < kRpmThres) {
-            failure = true;
-            System.out.println("!!!!!!!!!!!!!!!!!! Shooter Left Slave2 RPM Low !!!!!!!!!!!!!!!!!!!!!!!");
-        }
-
-        if (!Util.allCloseTo(Arrays.asList(rpmMaster, rpmRightSlave, rpmLeftSlave1, rpmLeftSlave2), rpmMaster, 250)) {
-            failure = true;
-            System.out.println("!!!!!!!!!!!!!!!!!! Shooter RPMs different !!!!!!!!!!!!!!!!!!!!!!!");
         }
 
         return !failure;

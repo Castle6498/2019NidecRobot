@@ -1,0 +1,2 @@
+You have to go to build.gradle and add a new line under dependencies:  compile files('lib/Name_of_you_jar.jar')
+Then go to the .classpath and add an entry: <classpathentry kind="lib" path="lib/Name_of_you_jar.jar"/>
