@@ -58,7 +58,7 @@ public class Intake extends Subsystem {
     public enum SystemState {
         IDLE,
         PICKINGUP,
-        SHOOTING
+        JAMMED
     }
 
     private SystemState mSystemState = SystemState.IDLE;
@@ -90,8 +90,8 @@ public class Intake extends Subsystem {
                 case PICKINGUP:
                     newState = handlePickingUp(timestamp);
                     break;
-                case SHOOTING:
-                    newState = handleShooting(timestamp);
+                case JAMMED:
+                    newState = handleJammed(timestamp);
                     break;                
                 default:
                     newState = SystemState.IDLE;
@@ -144,30 +144,14 @@ public class Intake extends Subsystem {
 
         return mWantedState;
     }
-
-
-
-
-    private double shootStartTime=0;
-    private SystemState handleShooting(double now){
-        if(mStateChanged){
-            setMotor(Constants.kIntakeShootSpeed);
-            shootStartTime=0;
+    
+    private SystemState handleJammed(double now)
+    {
+        if(mStateChanged)
+        {
+            // do this if jam
         }
-
-        if(hasBall()&&shootStartTime==0){
-            shootStartTime=now;
-        }
-
-        if(now-shootStartTime>=Constants.kIntakeShootPause){
-            stopMotor();
-            return defaultIdleTest();
-        }
-
-
-        return mWantedState;
     }
-
 
     public boolean seesBall(){
         return mPhotoeye.get();
