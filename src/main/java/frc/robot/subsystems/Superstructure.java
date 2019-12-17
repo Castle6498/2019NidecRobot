@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import frc.robot.Constants;
 import frc.robot.Robot;
-import frc.robot.RobotState;
+//import frc.robot.RobotState;
 import frc.robot.ShooterAimingParameters;
 import frc.robot.loops.Loop;
 import frc.robot.loops.Looper;
@@ -37,6 +37,26 @@ import java.util.Optional;
  */
 public class Superstructure extends Subsystem {
 
+    @Override
+    public void outputToSmartDashboard() {
+
+    }
+
+    @Override
+    public void stop() {
+
+    }
+
+    @Override
+    public void zeroSensors() {
+
+    }
+
+    @Override
+    public void registerEnabledLoops(Looper enabledLooper) {
+
+    }
+/*
     static Superstructure mInstance = null;
 
     public static Superstructure getInstance() {
@@ -626,5 +646,5 @@ public class Superstructure extends Subsystem {
 
     public void reloadConstants() {
         mShooter.refreshControllerConsts();
-    }
+    }*/
 }

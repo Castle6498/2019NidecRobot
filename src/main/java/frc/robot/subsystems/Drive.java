@@ -20,14 +20,17 @@ public class Drive {
 
 
     // Hardware
-    private Spark mLeftMaster, mRightMaster;
+    private Spark mLeftMaster, mRightMaster, mLeftSlave, mRightSlave;
 
     private Drive() {
         
         //Spark Initialization      
         
-            mLeftMaster = new Spark(Constants.kDriveLeftSparkPort);
-            mRightMaster = new Spark(Constants.kDriveRightSparkPort);
+            mLeftMaster = new Spark(Constants.kDriveLeftMasterSparkPort);
+            mRightMaster = new Spark(Constants.kDriveRightMasterSparkPort);
+
+            mLeftSlave = new Spark(Constants.kDriveLeftSlaveSparkPort);
+            mRightSlave = new Spark(Constants.kDriveRightSlaveSparkPort);
         
         setOpenLoop(DriveSignal.NEUTRAL);
 
@@ -42,7 +45,10 @@ public class Drive {
         // So set negative on the right master. TODO: Need to invert?
         mRightMaster.set(signal.getRight());
         mLeftMaster.set(signal.getLeft());
-     
+
+        mRightSlave.set(signal.getRight());
+        mLeftSlave.set(signal.getLeft());
+     System.out.println(signal.getRight() + " "+signal.getLeft());
     }
     
    

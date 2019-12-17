@@ -10,18 +10,16 @@ import frc.robot.CameraVision.LightMode;
 import frc.robot.CameraVision.StreamMode;
 
 import frc.robot.loops.Looper;
-import frc.robot.state_machines.BallControlHelper;
+
 //import frc.robot.state_machines.ClimbingHelper;
-import frc.robot.state_machines.BallControlHelper.CarryHeight;
-import frc.robot.state_machines.BallControlHelper.PickUpHeight;
-import frc.robot.state_machines.BallControlHelper.ShootHeight;
+
 //import frc.robot.state_machines.Superstructure;
 import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Lift;
-import frc.robot.subsystems.PlateCenter;
+//import frc.robot.subsystems.Lift;
+//import frc.robot.subsystems.PlateCenter;
 //import frc.robot.subsystems.Suspension;
-import frc.robot.subsystems.Wrist;
+//import frc.robot.subsystems.Wrist;
 
 /**
  * The main robot class, which instantiates all robot parts and helper classes
@@ -46,16 +44,16 @@ public class Robot extends TimedRobot {
 
     // Get subsystem instances
     private Drive mDrive = Drive.getInstance();
-    private PlateCenter mPlate = PlateCenter.getInstance();
-    private BallControlHelper mBall = BallControlHelper.getInstance();
+    //private PlateCenter mPlate = PlateCenter.getInstance();
+   // private BallControlHelper mBall = BallControlHelper.getInstance();
 
     
     
 
 
     // Create subsystem manager
-    private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(mPlate,mBall,
-    Intake.getInstance(),Lift.getInstance(),Wrist.getInstance()));
+    //private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(mPlate,mBall,
+    //Intake.getInstance(),Lift.getInstance(),Wrist.getInstance()));
 
     // Initialize other helper objects
     private ControlBoardInterface mControlBoard = ControlBoard.getInstance();
@@ -68,7 +66,7 @@ public class Robot extends TimedRobot {
     }
 
     public void zeroAllSensors() {
-        mSubsystemManager.zeroSensors();
+        //mSubsystemManager.zeroSensors();
      
     }
 
@@ -80,7 +78,7 @@ public class Robot extends TimedRobot {
         try {
             CrashTracker.logRobotInit();
 
-            mSubsystemManager.registerEnabledLoops(mEnabledLooper);
+           // mSubsystemManager.registerEnabledLoops(mEnabledLooper);
 
             //Here it is:
           //  AutoModeSelector.initAutoModeSelector();
@@ -95,7 +93,7 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
        normalInitialization();
-       mPlate.startedCenter(); //MEANS it started at the exact center (no need to home)
+       //mPlate.startedCenter(); //MEANS it started at the exact center (no need to home)
     }
 
     @Override
@@ -111,14 +109,11 @@ public class Robot extends TimedRobot {
             // Start loopers
             mEnabledLooper.start();
             mDrive.setOpenLoop(DriveSignal.NEUTRAL);
-            mBall.setWantedState(BallControlHelper.SystemState.HOME);
+           // mBall.setWantedState(BallControlHelper.SystemState.HOME);
             //mPlate.setWantedState(PlateCenter.SystemState.HOMING);
             //mClimbingHelper.setWantedState(ClimbingHelper.SystemState.HOME);
             
-            CameraVision.setLedMode(LightMode.eOff);
-            CameraVision.setCameraMode(CameraMode.eVision);
-            CameraVision.setPipeline(1);
-            CameraVision.setStreamMode(StreamMode.LimeMain);
+        
 
            
 
@@ -137,7 +132,7 @@ public class Robot extends TimedRobot {
     public void teleopInit() {
         normalInitialization();
             
-        if(!mPlate.hasHomed())mPlate.setWantedState(PlateCenter.SystemState.HOMING);      
+       // if(!mPlate.hasHomed())mPlate.setWantedState(PlateCenter.SystemState.HOMING);      
     }
 
     /**
@@ -158,14 +153,14 @@ public class Robot extends TimedRobot {
         //DRIVE ---------------------------------------------------------------------------------------
 
             mDrive.setOpenLoop(mControlBoard.getDriveSignal());
-            mDrive.lowGear(mControlBoard.getLowGear());
-
-            mDrive.drivePeriodic();
-
-            mDrive.profileEnable(mControlBoard.enableMotionProfile());
-
-            mDrive.holdMotionProile(mControlBoard.holdMotionProfile());
           
+
+           // mDrive.drivePeriodic();
+
+           // mDrive.profileEnable(mControlBoard.enableMotionProfile());
+
+          //  mDrive.holdMotionProile(mControlBoard.holdMotionProfile());
+          /*
         //PLATE -------------------------------------------------------------------------------------
 
             if(mControlBoard.getHatchPanelAlignment()) mPlate.setWantedState(PlateCenter.SystemState.AUTOALIGNING);
@@ -228,12 +223,12 @@ public class Robot extends TimedRobot {
         try {
             CrashTracker.logDisabledInit();
 
-            mDrive.stop();
+           // mDrive.stop();
 
             mEnabledLooper.stop();
 
             // Call stop on all our Subsystems.
-            mSubsystemManager.stop();
+           // mSubsystemManager.stop();
 
            mDrive.setOpenLoop(DriveSignal.NEUTRAL);
            
@@ -279,8 +274,8 @@ public class Robot extends TimedRobot {
      */
     public void allPeriodic() {
         
-        mSubsystemManager.outputToSmartDashboard();
-        mSubsystemManager.writeToLog();
+      //  mSubsystemManager.outputToSmartDashboard();
+      //  mSubsystemManager.writeToLog();
         mEnabledLooper.outputToSmartDashboard();
        
         

@@ -13,6 +13,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Spark;
 
 /**
  * The suspension subsystem consists of dynamo motors that are meant to send one ball at a time into the shooter.
@@ -34,35 +35,25 @@ public class Intake extends Subsystem {
         return sInstance;
     }
 
-    private TalonSRX mTalon; 
-    private DigitalInput mPhotoeye;
+    
+    private Spark mIntakeMotor, mIntakeActuatorMotor;
 
     public Intake() {
         
-         //Talon Initialization 
-         mTalon = CANTalonFactory.createTalon(Constants.kIntakeTalonID, 
-         true, NeutralMode.Brake, FeedbackDevice.QuadEncoder, 0, false);
- 
- 
-         mTalon = CANTalonFactory.setupHardLimits(mTalon,  LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled,false,
-         LimitSwitchSource.Deactivated,LimitSwitchNormal.Disabled, false);
+         //Spark Initialization 
          
-         mTalon = CANTalonFactory.setupSoftLimits(mTalon, false, 0,false, 0);
-        
-       //Photoeye Initialization
-       mPhotoeye=new DigitalInput(Constants.kIntakeSensorPort);
-        mTalon.setNeutralMode(NeutralMode.Brake);
-       System.out.println("intake on start");
+        //EJ initialize ur cwappy sparks
+       
     }
 
     public enum SystemState {
         IDLE,
-        PICKINGUP,
-        JAMMED
+        PICKINGUP, //only able to go to this when unfolded
+        UNFOLDED
     }
 
     private SystemState mSystemState = SystemState.IDLE;
-    private SystemState mWantedState = SystemState.IDLE;
+    private SystemState mWantedState = SystemState.IDLE; //EJ notice how there is a wanted state
 
     private double mCurrentStateStartTime;
     private boolean mStateChanged;
@@ -90,8 +81,8 @@ public class Intake extends Subsystem {
                 case PICKINGUP:
                     newState = handlePickingUp(timestamp);
                     break;
-                case JAMMED:
-                    newState = handleJammed(timestamp);
+                case UNFOLDED:
+                    newState = handleUnfolded(timestamp);
                     break;                
                 default:
                     newState = SystemState.IDLE;
@@ -106,7 +97,7 @@ public class Intake extends Subsystem {
                 }
             }
 
-            ballUpdate(timestamp);
+           
         }
 
         @Override
@@ -145,13 +136,7 @@ public class Intake extends Subsystem {
         return mWantedState;
     }
     
-    private SystemState handleJammed(double now)
-    {
-        if(mStateChanged)
-        {
-            // do this if jam
-        }
-    }
+   
 
     public boolean seesBall(){
         return mPhotoeye.get();

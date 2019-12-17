@@ -13,6 +13,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.NidecBrushless;
 
 /**
  * The suspension subsystem consists of dynamo motors that are meant to send one ball at a time into the shooter.
@@ -34,35 +35,26 @@ public class Feeder extends Subsystem {
         return sInstance;
     }
 
-    private TalonSRX mTalon; 
+    private NidecBrushless mLeftMotor, mRightMotor; 
     private DigitalInput mPhotoeye;
 
     public Feeder() {
         
-         //Talon Initialization 
-         mTalon = CANTalonFactory.createTalon(Constants.kIntakeTalonID, 
-         true, NeutralMode.Brake, FeedbackDevice.QuadEncoder, 0, false);
- 
- 
-         mTalon = CANTalonFactory.setupHardLimits(mTalon,  LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled,false,
-         LimitSwitchSource.Deactivated,LimitSwitchNormal.Disabled, false);
-         
-         mTalon = CANTalonFactory.setupSoftLimits(mTalon, false, 0,false, 0);
+        //Nidec Initialization 
+        //LINDA - initialize mLeftMotor and mRightMotor based on the ports defined in the Constants.java (Constants.kFeeder....)
         
-       //Photoeye Initialization
-       mPhotoeye=new DigitalInput(Constants.kIntakeSensorPort);
-        mTalon.setNeutralMode(NeutralMode.Brake);
-       System.out.println("intake on start");
+        //Photoeye Initialization
+        mPhotoeye=new DigitalInput(Constants.kFeederSensorPort);
+  
+     
     }
 
     public enum SystemState {
         IDLE,
-        PICKINGUP,
-        SHOOTING
+        FEEDING
     }
 
     private SystemState mSystemState = SystemState.IDLE;
-    private SystemState mWantedState = SystemState.IDLE;
 
     private double mCurrentStateStartTime;
     private boolean mStateChanged;
@@ -75,7 +67,7 @@ public class Feeder extends Subsystem {
                 mSystemState = SystemState.IDLE;
                 mStateChanged = true;
                 mCurrentStateStartTime = timestamp;
-                System.out.println("Intake started");
+                System.out.println("Feeder started");
             }
         }
 
@@ -87,17 +79,14 @@ public class Feeder extends Subsystem {
                 case IDLE:
                     newState = handleIdle();
                     break;
-                case PICKINGUP:
-                    newState = handlePickingUp(timestamp);
-                    break;
-                case SHOOTING:
-                    newState = handleShooting(timestamp);
-                    break;                
+                case FEEDING:
+                    newState = handleFeeding(timestamp);
+                    break;             
                 default:
                     newState = SystemState.IDLE;
                 }
                 if (newState != mSystemState) {
-                    System.out.println("Intake state " + mSystemState + " to " + newState);
+                    System.out.println("Feeder state " + mSystemState + " to " + newState);
                     mSystemState = newState;
                     mCurrentStateStartTime = timestamp;
                     mStateChanged = true;
@@ -105,7 +94,6 @@ public class Feeder extends Subsystem {
                     mStateChanged = false;
                 }
             }
-
             ballUpdate(timestamp);
         }
 
@@ -115,118 +103,75 @@ public class Feeder extends Subsystem {
         }
     };
 
-
-    private SystemState defaultIdleTest(){
-        if(mSystemState == mWantedState){
-            mWantedState=SystemState.IDLE;
-            return SystemState.IDLE; 
-        }
-        else return mWantedState;
-    }
+    
 
     private SystemState handleIdle() {
         if(mStateChanged){  
             stopMotor();
         }
-        //System.out.println("ipdate");
-        return defaultIdleTest();
+        
+        return mSystemState;
     }
 
-    private SystemState handlePickingUp(double now){
+    private SystemState handleFeeding(double now){
         if(mStateChanged){
-            setMotor(Constants.kIntakePickUpSpeed);
+            //setMotor(a constant from constants); LINDA
         }
 
-        if(hasBall()){
-            stopMotor();
-            return defaultIdleTest();
-        }
-
-        return mWantedState;
+        return mSystemState;
     }
 
 
 
-
-    private double shootStartTime=0;
-    private SystemState handleShooting(double now){
-        if(mStateChanged){
-            setMotor(Constants.kIntakeShootSpeed);
-            shootStartTime=0;
-        }
-
-        if(hasBall()&&shootStartTime==0){
-            shootStartTime=now;
-        }
-
-        if(now-shootStartTime>=Constants.kIntakeShootPause){
-            stopMotor();
-            return defaultIdleTest();
+    //Ball Handling for Sensor ----------------
+        public boolean seesBall(){
+            return mPhotoeye.get();
         }
 
 
-        return mWantedState;
-    }
-
-
-    public boolean seesBall(){
-        return mPhotoeye.get();
-    }
-
-
-    private boolean mHasBall=false;
-    public boolean hasBall(){
-        return mHasBall;
-    }
-
-    private double ballStartSeenTime=0;
-    private double ballSeenTime=0;
-
-    private void ballUpdate(double time){
-        boolean seen = seesBall();
-        if(!seen){
-            ballSeenTime=0;
-            ballStartSeenTime=0;
-            mHasBall=false;
-        }else{
-            if(ballStartSeenTime==0)ballStartSeenTime=time;
-            ballSeenTime=time;
-        } 
-
-        if(ballSeenTime-ballStartSeenTime>=Constants.kIntakeBallRequiredTime){
-            mHasBall=true;
+        private boolean mHasBall=false;
+        public boolean hasBall(){
+            return mHasBall;
         }
-    }
+
+        private double ballStartSeenTime=0;
+        private double ballSeenTime=0;
+
+        private void ballUpdate(double time){
+            boolean seen = seesBall();
+            if(!seen){
+                ballSeenTime=0;
+                ballStartSeenTime=0;
+                mHasBall=false;
+            }else{
+                if(ballStartSeenTime==0)ballStartSeenTime=time;
+                ballSeenTime=time;
+            } 
+
+            if(ballSeenTime-ballStartSeenTime>=Constants.kFeederBallRequiredTime){
+                mHasBall=true;
+            }
+        }
 
    
     
     public synchronized void setMotor(double s){
-        mTalon.set(ControlMode.PercentOutput,s);
+       //LINDA be able to set both left and right motors, one is in the opposite direction (-s)
         
     }
 
     
-    public double getCurrent(){
-        double current = mTalon.getOutputCurrent();
-        if(true) System.out.println("Intake current: "+current);
-        return current;
-    }
-
-    public boolean getStalled(){
-        return getCurrent()>=Constants.kIntakeCurrentThreshold;
-    }
+   
 
     //Boring Stuff
 
         private void stopMotor(){
-            mTalon.set(ControlMode.PercentOutput,.1);
-            //mTalon.set(ControlMode.PercentOutput, .1);
+          //LINDA - set them to 0
+            
         }
 
 
-        public synchronized void setWantedState(SystemState state) {
-            mWantedState = state;
-        }
+        
 
         @Override
         public void outputToSmartDashboard() {
@@ -235,7 +180,7 @@ public class Feeder extends Subsystem {
 
         @Override
         public void stop() {
-            setWantedState(SystemState.IDLE);
+            mSystemState = SystemState.IDLE;
             stopMotor();
         }
 
@@ -249,9 +194,13 @@ public class Feeder extends Subsystem {
             in.register(mLoop);
         }
 
-        public boolean checkSystem() {
-            System.out.println("Testing Intake.-----------------------------------");
+        public boolean checkSystem(double timestamp) {
+            System.out.println("Testing Feeder.-----------------------------------");
             boolean failure=false;       
+
+            //LINDA - make a test that turns on left motor, then right motor each for a set time
+            //feel free to use Timer.delay(amount) to add delays to account for spin up and spin down time
+            //Include printouts that report each step in the process
             return !failure;
         }
 

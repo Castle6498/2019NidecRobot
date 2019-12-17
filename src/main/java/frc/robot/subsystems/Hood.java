@@ -35,35 +35,22 @@ public class Hood extends Subsystem {
         return sInstance;
     }
 
-    private TalonSRX mTalon; 
-    private DigitalInput mPhotoeye;
+    //JAMESON KADEN - linear actuator definition
 
     public Hood() {
         
-         //Talon Initialization 
-         mTalon = CANTalonFactory.createTalon(Constants.kIntakeTalonID, 
-         true, NeutralMode.Brake, FeedbackDevice.QuadEncoder, 0, false);
+         //JAMESON KADEN - Linear Actuator Initialization 
+
  
- 
-         mTalon = CANTalonFactory.setupHardLimits(mTalon,  LimitSwitchSource.Deactivated, LimitSwitchNormal.Disabled,false,
-         LimitSwitchSource.Deactivated,LimitSwitchNormal.Disabled, false);
-         
-         mTalon = CANTalonFactory.setupSoftLimits(mTalon, false, 0,false, 0);
-        
-       //Photoeye Initialization
-       mPhotoeye=new DigitalInput(Constants.kIntakeSensorPort);
-        mTalon.setNeutralMode(NeutralMode.Brake);
-       System.out.println("intake on start");
     }
 
     public enum SystemState {
         IDLE,
-        PICKINGUP,
-        SHOOTING
+        MOVING
     }
 
     private SystemState mSystemState = SystemState.IDLE;
-    private SystemState mWantedState = SystemState.IDLE;
+    
 
     private double mCurrentStateStartTime;
     private boolean mStateChanged;
@@ -76,7 +63,7 @@ public class Hood extends Subsystem {
                 mSystemState = SystemState.IDLE;
                 mStateChanged = true;
                 mCurrentStateStartTime = timestamp;
-                System.out.println("Intake started");
+                System.out.println("Hood started");
             }
         }
 
@@ -88,17 +75,14 @@ public class Hood extends Subsystem {
                 case IDLE:
                     newState = handleIdle();
                     break;
-                case PICKINGUP:
-                    newState = handlePickingUp(timestamp);
-                    break;
-                case SHOOTING:
-                    newState = handleShooting(timestamp);
-                    break;                
+                case MOVING:
+                    newState = handleMoving(timestamp);
+                    break;      
                 default:
                     newState = SystemState.IDLE;
                 }
                 if (newState != mSystemState) {
-                    System.out.println("Intake state " + mSystemState + " to " + newState);
+                    System.out.println("Hood state " + mSystemState + " to " + newState);
                     mSystemState = newState;
                     mCurrentStateStartTime = timestamp;
                     mStateChanged = true;
@@ -117,117 +101,52 @@ public class Hood extends Subsystem {
     };
 
 
-    private SystemState defaultIdleTest(){
-        if(mSystemState == mWantedState){
-            mWantedState=SystemState.IDLE;
-            return SystemState.IDLE; 
-        }
-        else return mWantedState;
-    }
+   
 
     private SystemState handleIdle() {
         if(mStateChanged){  
-            stopMotor();
+          
         }
-        //System.out.println("ipdate");
-        return defaultIdleTest();
+     
+        return mSystemState;
     }
 
-    private SystemState handlePickingUp(double now){
+    private SystemState handleMoving(double now){
         if(mStateChanged){
-            setMotor(Constants.kIntakePickUpSpeed);
+            
         }
 
-        if(hasBall()){
-            stopMotor();
-            return defaultIdleTest();
-        }
+       //JAMESON KADEN figure out a way to know how long it will take to make the move, keep track of how far it has to go
 
-        return mWantedState;
+        return //JAMESON KADEN make it only return IDLE when its done moving, if not, return moving
     }
 
 
 
 
-    private double shootStartTime=0;
-    private SystemState handleShooting(double now){
-        if(mStateChanged){
-            setMotor(Constants.kIntakeShootSpeed);
-            shootStartTime=0;
-        }
-
-        if(hasBall()&&shootStartTime==0){
-            shootStartTime=now;
-        }
-
-        if(now-shootStartTime>=Constants.kIntakeShootPause){
-            stopMotor();
-            return defaultIdleTest();
-        }
-
-
-        return mWantedState;
-    }
-
-
-    public boolean seesBall(){
-        return mPhotoeye.get();
-    }
-
-
-    private boolean mHasBall=false;
-    public boolean hasBall(){
-        return mHasBall;
-    }
-
-    private double ballStartSeenTime=0;
-    private double ballSeenTime=0;
-
-    private void ballUpdate(double time){
-        boolean seen = seesBall();
-        if(!seen){
-            ballSeenTime=0;
-            ballStartSeenTime=0;
-            mHasBall=false;
-        }else{
-            if(ballStartSeenTime==0)ballStartSeenTime=time;
-            ballSeenTime=time;
-        } 
-
-        if(ballSeenTime-ballStartSeenTime>=Constants.kIntakeBallRequiredTime){
-            mHasBall=true;
-        }
-    }
+ 
 
    
-    
-    public synchronized void setMotor(double s){
-        mTalon.set(ControlMode.PercentOutput,s);
+    //JAMESON KADEN make methods to set the pwm value (0 to 1) as well as one to set the actual distance extended
+    //JAMESON KADEN using math make a method to set the hood to a launch angle (parameter is an angle from the ground)
+    //JAMESON KADEN place constants in the Constants.java file under the Hood section
+    //JAMESON KADEN make it so that when the set position is different than current, system state switches to moving automatically
+    public synchronized void setMotor(double s){ 
+        
         
     }
 
     
-    public double getCurrent(){
-        double current = mTalon.getOutputCurrent();
-        if(true) System.out.println("Intake current: "+current);
-        return current;
-    }
-
-    public boolean getStalled(){
-        return getCurrent()>=Constants.kIntakeCurrentThreshold;
-    }
+ 
 
     //Boring Stuff
 
         private void stopMotor(){
-            mTalon.set(ControlMode.PercentOutput,.1);
-            //mTalon.set(ControlMode.PercentOutput, .1);
+           
         }
 
 
-        public synchronized void setWantedState(SystemState state) {
-            mWantedState = state;
-        }
+       
 
         @Override
         public void outputToSmartDashboard() {
@@ -236,7 +155,7 @@ public class Hood extends Subsystem {
 
         @Override
         public void stop() {
-            setWantedState(SystemState.IDLE);
+            mSystemState=SystemState.IDLE;
             stopMotor();
         }
 
@@ -251,8 +170,13 @@ public class Hood extends Subsystem {
         }
 
         public boolean checkSystem() {
-            System.out.println("Testing Intake.-----------------------------------");
+            System.out.println("Testing HOOD.-----------------------------------");
             boolean failure=false;       
+
+            //JAMESON KADEN make a test to make sure the hood works correctly
+            //JAMESON KADEN add print outs to mark what is happening for each step
+            //JAMESON KADEN feel free to use Timer.delay(amount) to add delays
+
             return !failure;
         }
 

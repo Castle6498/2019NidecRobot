@@ -16,8 +16,11 @@ public class Constants extends ConstantsBase {
     // Drive
         
         //Sparks
-            public static final int kDriveLeftSparkPort=0; //TODO: Set drive ports
-            public static final int kDriveRightSparkPort=1;
+            public static final int kDriveLeftMasterSparkPort=5; //TODO: Set drive ports
+            public static final int kDriveRightMasterSparkPort=2;
+
+            public static final int kDriveLeftSlaveSparkPort=4; //TODO: Set drive ports
+            public static final int kDriveRightSlaveSparkPort=3;
 
             public static final double regularTurnReduction=.85;
 
@@ -111,20 +114,30 @@ public class Constants extends ConstantsBase {
 
     //Intake -----------------------------------------------------------
     
-        //Talon
-        public static final int kIntakeTalonID=5;
+        //Sparks
+        public static final int kIntakeSparkPort=1;
+        public static final int kLinearActuatorSparkPort=0;
 
         public static final double kIntakePickUpSpeed=.8;
-        public static final double kIntakeShootSpeed=-1;
+    
+    //Hood
+        
+        public static final int kHoodLinearActuatorPort=6;
+    
+    //Feeder
 
-        public static final double kIntakeBallRequiredTime=.55;
-        public static final double kIntakeShootPause = 1; 
-
-        public static final double kIntakeCurrentThreshold=1.5;
+        //Ports
+        public static final int kFeederLeftPWM = 7;
+        public static final int kFeederLeftDIO = 0;
+        
+        public static final int kFeederRightPWM = 8;
+        public static final int kFeederRightDIO = 1;
+    
 
         //Photoeye
-        public static final int kIntakeSensorPort = 0;
-         
+        public static final int kFeederSensorPort = 0; //TODO: get this mounted
+
+        public static final double kFeederBallRequiredTime = .2;
     
 
 

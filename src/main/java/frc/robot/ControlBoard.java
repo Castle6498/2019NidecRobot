@@ -5,11 +5,7 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frc.lib.util.DriveSignal;
 import frc.robot.CameraVision.StreamMode;
 //import frc.robot.state_machines.ClimbingHelper;
-import frc.robot.state_machines.BallControlHelper.CarryHeight;
 
-
-import frc.robot.state_machines.BallControlHelper.PickUpHeight;
-import frc.robot.state_machines.BallControlHelper.ShootHeight;
 //import frc.robot.state_machines.ClimbingHelper.PreClimbHeight;
 import edu.wpi.first.wpilibj.XboxController;
 
@@ -234,7 +230,7 @@ public class ControlBoard implements ControlBoardInterface {
 
     //BALLS -------------------------------------------------------------------------
 
-        @Override
+     /*   @Override
         public PickUpHeight getBallPickUp() {
             if(mOperator.getAButton())return PickUpHeight.FLOOR;
             else if (mOperator.getBButton()) return PickUpHeight.LOADING_STATION;
@@ -288,7 +284,7 @@ public class ControlBoard implements ControlBoardInterface {
             return speed;
         }
 
-
+*/
    
 
     //RUMBLE ------------------------------------------------------------------------------
