@@ -119,10 +119,21 @@ public class Constants extends ConstantsBase {
         public static final int kLinearActuatorSparkPort=0;
 
         public static final double kIntakePickUpSpeed=.8;
+
+        //Linear Actuator Settings
+        public static final int kIntakeMinLimitPort = 2;
+        public static final int kIntakeMaxLimitPort = 3;
+
+        public static final double kIntakeActuationSpeed = .25;
     
     //Hood
         
         public static final int kHoodLinearActuatorPort=6;
+
+        public static final double kHoodStroke = 140; //mm
+        public static final double kHoodSpeed = 7; //mm/s
+        public static final double kHoodRadius = 120.65; //mm
+        public static final double kHoodMaxElevation=(kHoodStroke/kHoodRadius)*(180/Math.PI);
     
     //Feeder
 
@@ -132,12 +143,14 @@ public class Constants extends ConstantsBase {
         
         public static final int kFeederRightPWM = 8;
         public static final int kFeederRightDIO = 1;
+
+        public static final double kFeederSpeed = 1;
     
 
         //Photoeye
-        public static final int kFeederSensorPort = 0; //TODO: get this mounted
+        //public static final int kFeederSensorPort = 0; //TODO: get this mounted
 
-        public static final double kFeederBallRequiredTime = .2;
+        //public static final double kFeederBallRequiredTime = .2;
     
 
 

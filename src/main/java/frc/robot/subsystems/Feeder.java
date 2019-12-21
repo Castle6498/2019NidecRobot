@@ -1,16 +1,11 @@
 package frc.robot.subsystems;
 
-import frc.lib.util.drivers.Talon.CANTalonFactory;
+
 import frc.robot.Constants;
 import frc.robot.loops.Loop;
 import frc.robot.loops.Looper;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
-import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.NidecBrushless;
@@ -36,15 +31,20 @@ public class Feeder extends Subsystem {
     }
 
     private NidecBrushless mLeftMotor, mRightMotor; 
-    private DigitalInput mPhotoeye;
+    //private DigitalInput mPhotoeye;
 
     public Feeder() {
         
         //Nidec Initialization 
         //LINDA - initialize mLeftMotor and mRightMotor based on the ports defined in the Constants.java (Constants.kFeeder....)
+        mLeftMotor = new NidecBrushless(Constants.kFeederLeftPWM, Constants.kFeederLeftDIO);
+        mRightMotor = new NidecBrushless(Constants.kFeederRightPWM, Constants.kFeederRightDIO);
+
+        mLeftMotor.enable();
+        mRightMotor.enable();
         
         //Photoeye Initialization
-        mPhotoeye=new DigitalInput(Constants.kFeederSensorPort);
+        //mPhotoeye=new DigitalInput(Constants.kFeederSensorPort);
   
      
     }
@@ -94,7 +94,7 @@ public class Feeder extends Subsystem {
                     mStateChanged = false;
                 }
             }
-            ballUpdate(timestamp);
+           // ballUpdate(timestamp);
         }
 
         @Override
@@ -116,13 +116,14 @@ public class Feeder extends Subsystem {
     private SystemState handleFeeding(double now){
         if(mStateChanged){
             //setMotor(a constant from constants); LINDA
+            setMotor(Constants.kFeederSpeed);
         }
 
         return mSystemState;
     }
 
 
-
+/*
     //Ball Handling for Sensor ----------------
         public boolean seesBall(){
             return mPhotoeye.get();
@@ -153,21 +154,25 @@ public class Feeder extends Subsystem {
             }
         }
 
-   
+   */
     
     public synchronized void setMotor(double s){
        //LINDA be able to set both left and right motors, one is in the opposite direction (-s)
-        
+        mLeftMotor.set(s);
+        mRightMotor.set(-s);
     }
 
-    
+    public synchronized void setSystemState(SystemState s){
+        mSystemState=s;
+    }
    
 
     //Boring Stuff
 
         private void stopMotor(){
           //LINDA - set them to 0
-            
+            mLeftMotor.set(0);
+            mRightMotor.set(0);
         }
 
 

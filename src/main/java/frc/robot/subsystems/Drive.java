@@ -42,7 +42,7 @@ public class Drive {
     public synchronized void setOpenLoop(DriveSignal signal) {
     
         // Right side is reversed, but reverseOutput doesn't invert PercentVBus.
-        // So set negative on the right master. TODO: Need to invert?
+        // So set negative on the right master. 
         mRightMaster.set(signal.getRight());
         mLeftMaster.set(signal.getLeft());
 

@@ -37,23 +37,37 @@ public class Intake extends Subsystem {
 
     
     private Spark mIntakeMotor, mIntakeActuatorMotor;
+    private DigitalInput mMinLimit, mMaxLimit;
 
     public Intake() {
         
          //Spark Initialization 
          
         //EJ initialize ur cwappy sparks
+        mIntakeMotor = new Spark(Constants.kIntakeSparkPort);
+        mIntakeActuatorMotor = new Spark(Constants.kLinearActuatorSparkPort);
+
+        mMinLimit = new DigitalInput(Constants.kIntakeMinLimitPort);
+        mMaxLimit = new DigitalInput(Constants.kIntakeMaxLimitPort);
        
+    }
+
+    public enum WantedState {
+        IDLE,
+        PICKUP, //only able to go to this when unfolded
+        UNFOLD
     }
 
     public enum SystemState {
         IDLE,
-        PICKINGUP, //only able to go to this when unfolded
-        UNFOLDED
+        PICKINGUP,
+        UNFOLDED,
+        LOWERING,
+        RAISING
     }
 
     private SystemState mSystemState = SystemState.IDLE;
-    private SystemState mWantedState = SystemState.IDLE; //EJ notice how there is a wanted state
+    private WantedState mWantedState = WantedState.IDLE; //EJ notice how there is a wanted state
 
     private double mCurrentStateStartTime;
     private boolean mStateChanged;
@@ -82,8 +96,13 @@ public class Intake extends Subsystem {
                     newState = handlePickingUp(timestamp);
                     break;
                 case UNFOLDED:
-                    newState = handleUnfolded(timestamp);
-                    break;                
+                    newState = handleUnfolded();
+                    break;  
+                case LOWERING:
+                    newState = handleLowering();
+                    break;
+                case RAISING:
+                    newState = handleRaising();              
                 default:
                     newState = SystemState.IDLE;
                 }
@@ -107,94 +126,127 @@ public class Intake extends Subsystem {
     };
 
 
-    private SystemState defaultIdleTest(){
-        if(mSystemState == mWantedState){
-            mWantedState=SystemState.IDLE;
-            return SystemState.IDLE; 
-        }
-        else return mWantedState;
-    }
+  
 
     private SystemState handleIdle() {
         if(mStateChanged){  
-            stopMotor();
+            stopMotors();
         }
         //System.out.println("ipdate");
-        return defaultIdleTest();
+        switch(mWantedState){
+            case PICKUP:
+            case UNFOLD:
+                return SystemState.LOWERING;
+            default:
+                return SystemState.IDLE;
+        }
     }
 
     private SystemState handlePickingUp(double now){
         if(mStateChanged){
-            setMotor(Constants.kIntakePickUpSpeed);
+            setRollers(Constants.kIntakePickUpSpeed);
         }
 
-        if(hasBall()){
-            stopMotor();
-            return defaultIdleTest();
+        if(mWantedState!=WantedState.PICKUP){
+            stopMotors();
         }
 
-        return mWantedState;
+
+       switch(mWantedState){
+            case IDLE:
+                return SystemState.RAISING;
+            case UNFOLD:
+                return SystemState.UNFOLDED;
+            default:
+                return SystemState.PICKINGUP;
+        }
     }
     
-   
+    private SystemState handleUnfolded(){
+        if(mStateChanged){
+           
+        }
 
-    public boolean seesBall(){
-        return mPhotoeye.get();
-    }
-
-
-    private boolean mHasBall=false;
-    public boolean hasBall(){
-        return mHasBall;
-    }
-
-    private double ballStartSeenTime=0;
-    private double ballSeenTime=0;
-
-    private void ballUpdate(double time){
-        boolean seen = seesBall();
-        if(!seen){
-            ballSeenTime=0;
-            ballStartSeenTime=0;
-            mHasBall=false;
-        }else{
-            if(ballStartSeenTime==0)ballStartSeenTime=time;
-            ballSeenTime=time;
-        } 
-
-        if(ballSeenTime-ballStartSeenTime>=Constants.kIntakeBallRequiredTime){
-            mHasBall=true;
+        switch(mWantedState){
+            case IDLE:
+                return SystemState.RAISING;
+            case PICKUP:
+                return SystemState.PICKINGUP;
+            default:
+                return SystemState.UNFOLDED;
         }
     }
 
-   
+    private SystemState handleLowering(){
+        if(mStateChanged){
+           setActuator(Constants.kIntakeActuationSpeed);
+        }
+
+        if(getMaxLimit()){
+            setActuator(0);
+            return SystemState.UNFOLDED;
+        }
+        
+        switch(mWantedState){
+            case IDLE:
+                return SystemState.RAISING;
+            default:
+                return SystemState.LOWERING;
+        }
+    }
+
+    private SystemState handleRaising(){
+        if(mStateChanged){
+           setActuator(-Constants.kIntakeActuationSpeed);
+        }
+
+        if(getMinLimit()){
+            setActuator(0);
+            return SystemState.IDLE;
+        }
+        
+        switch(mWantedState){
+            case UNFOLD:
+            case PICKUP:
+                return SystemState.LOWERING;
+            default:
+                return SystemState.RAISING;
+        }
+    }
     
-    public synchronized void setMotor(double s){
-        mTalon.set(ControlMode.PercentOutput,s);
+    private void setRollers(double s){
+        mIntakeMotor.set(s);
         
     }
 
-    
-    public double getCurrent(){
-        double current = mTalon.getOutputCurrent();
-        if(true) System.out.println("Intake current: "+current);
-        return current;
+    public void setActuator(double s){
+        mIntakeActuatorMotor.set(s);
     }
 
-    public boolean getStalled(){
-        return getCurrent()>=Constants.kIntakeCurrentThreshold;
+    private boolean getMinLimit(){
+        return mMinLimit.get();
     }
+   
+    private boolean getMaxLimit(){
+        return mMaxLimit.get();
+    }
+
+    
 
     //Boring Stuff
 
-        private void stopMotor(){
-            mTalon.set(ControlMode.PercentOutput,.1);
-            //mTalon.set(ControlMode.PercentOutput, .1);
+        private void stopMotors(){
+            mIntakeMotor.set(0);
+            mIntakeActuatorMotor.set(0);
         }
 
 
-        public synchronized void setWantedState(SystemState state) {
+        public synchronized void setWantedState(WantedState state) {
             mWantedState = state;
+        }
+
+        public synchronized SystemState getSystemState(){
+            return mSystemState;
         }
 
         @Override
@@ -204,8 +256,8 @@ public class Intake extends Subsystem {
 
         @Override
         public void stop() {
-            setWantedState(SystemState.IDLE);
-            stopMotor();
+            setWantedState(WantedState.IDLE);
+            stopMotors();
         }
 
         @Override
@@ -221,6 +273,8 @@ public class Intake extends Subsystem {
         public boolean checkSystem() {
             System.out.println("Testing Intake.-----------------------------------");
             boolean failure=false;       
+
+            //EJ make a cool thing to make it test things, use print outs to verify status, see other subsytems for using timer delays
             return !failure;
         }
 
