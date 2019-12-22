@@ -15,7 +15,12 @@ import frc.robot.loops.Looper;
 
 //import frc.robot.state_machines.Superstructure;
 import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.Feeder;
+import frc.robot.subsystems.Flywheel;
+import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Shooter;
+
 //import frc.robot.subsystems.Lift;
 //import frc.robot.subsystems.PlateCenter;
 //import frc.robot.subsystems.Suspension;
@@ -44,16 +49,15 @@ public class Robot extends TimedRobot {
 
     // Get subsystem instances
     private Drive mDrive = Drive.getInstance();
-    //private PlateCenter mPlate = PlateCenter.getInstance();
-   // private BallControlHelper mBall = BallControlHelper.getInstance();
-
+    private Shooter mShooter = Shooter.getInstance();
+    private Intake mIntake = Intake.getInstance();
     
     
 
 
     // Create subsystem manager
-    //private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(mPlate,mBall,
-    //Intake.getInstance(),Lift.getInstance(),Wrist.getInstance()));
+    private final SubsystemManager mSubsystemManager = new SubsystemManager(Arrays.asList(mShooter,Hood.getInstance(),
+    mIntake,Feeder.getInstance(),Flywheel.getInstance()));
 
     // Initialize other helper objects
     private ControlBoardInterface mControlBoard = ControlBoard.getInstance();
@@ -78,7 +82,7 @@ public class Robot extends TimedRobot {
         try {
             CrashTracker.logRobotInit();
 
-           // mSubsystemManager.registerEnabledLoops(mEnabledLooper);
+            mSubsystemManager.registerEnabledLoops(mEnabledLooper);
 
             //Here it is:
           //  AutoModeSelector.initAutoModeSelector();
@@ -109,13 +113,6 @@ public class Robot extends TimedRobot {
             // Start loopers
             mEnabledLooper.start();
             mDrive.setOpenLoop(DriveSignal.NEUTRAL);
-           // mBall.setWantedState(BallControlHelper.SystemState.HOME);
-            //mPlate.setWantedState(PlateCenter.SystemState.HOMING);
-            //mClimbingHelper.setWantedState(ClimbingHelper.SystemState.HOME);
-            
-        
-
-           
 
            zeroAllSensors();
            
@@ -155,61 +152,14 @@ public class Robot extends TimedRobot {
             mDrive.setOpenLoop(mControlBoard.getDriveSignal());
           
 
-           // mDrive.drivePeriodic();
+        if(mControlBoard.getStartIntake())mIntake.setWantedState(Intake.WantedState.PICKUP);
+        else if(mControlBoard.getStopIntake())mIntake.setWantedState(Intake.WantedState.IDLE);
+        else if(mControlBoard.getUnfoldIntake())mIntake.setWantedState(Intake.WantedState.UNFOLD);
 
-           // mDrive.profileEnable(mControlBoard.enableMotionProfile());
-
-          //  mDrive.holdMotionProile(mControlBoard.holdMotionProfile());
-          /*
-        //PLATE -------------------------------------------------------------------------------------
-
-            if(mControlBoard.getHatchPanelAlignment()) mPlate.setWantedState(PlateCenter.SystemState.AUTOALIGNING);
-            else if(mControlBoard.getHatchPanelCentering()) mPlate.setWantedState(PlateCenter.SystemState.CENTERING);
-            else if(mControlBoard.getHatchPanelDeploy()) mPlate.setWantedState(PlateCenter.SystemState.DEPLOYINGPLATE);
-            else if(mControlBoard.getPlateHome()) mPlate.setWantedState(PlateCenter.SystemState.HOMING);
-        
-            mPlate.deployHardStop(mControlBoard.getHatchHardStops());
-
-            mPlate.jog(mControlBoard.getHatchPanelJog());
-
-           // System.out.println("Plate Wall: "+mPlate.getWall());
-
-
-        //BALL -----------------------------------------------------------------------------------
-        
-            PickUpHeight pickUpHeight = mControlBoard.getBallPickUp();
-            ShootHeight shootHeight = mControlBoard.getBallShootPosition();
-            CarryHeight carryHeight = mControlBoard.getCarryBall();
-
-            if(pickUpHeight!=null) mBall.pickUp(pickUpHeight);
-            else if(shootHeight!=null)mBall.shootPosition(shootHeight);
-            else if (carryHeight!=null)mBall.carry(carryHeight);
-            else if(mControlBoard.getBallShoot()) mBall.setWantedState(BallControlHelper.SystemState.SHOOT);
-            else if(mControlBoard.getBallHome()) mBall.setWantedState(BallControlHelper.SystemState.HOME);
-            
-            mBall.jogLift(mControlBoard.getLiftJog());    
-        
-            mBall.jogWrist(mControlBoard.getWristJog());         
-        
-        //CLIMBING -----------------------------------------------------------------------------
-            
-         /*  if(mControlBoard.getSuspensionHome())mClimbingHelper.setWantedState(ClimbingHelper.SystemState.HOME);
-            
-            ClimbingHelper.PreClimbHeight h = mControlBoard.getPreClimbHeight();
-            if(h!=null)mClimbingHelper.preClimb(h);
-
-            if(mControlBoard.getClimbLift())mClimbingHelper.setWantedState(ClimbingHelper.SystemState.LIFT);
-            else if(mControlBoard.getClimbStow())mClimbingHelper.setWantedState(ClimbingHelper.SystemState.STOW);
-        
-            mClimbingHelper.setFullBlast(mControlBoard.getClimbFullBlast());
-        
-            mClimbingHelper.setVerticalJog(mControlBoard.getClimbVerticleJog());
-            mClimbingHelper.setHorizontalJog(mControlBoard.getClimbHorizontalJog());
-*/
-
-       
+       if(mControlBoard.getUpdateHoodAngle()) mShooter.setHoodAngle(mControlBoard.getHoodAngle());
            
-
+        if(mControlBoard.getStartShoot())mShooter.setWantedState(Shooter.WantedState.SHOOT);
+        else if(mControlBoard.getStopShoot())mShooter.setWantedState(Shooter.WantedState.IDLE);
 
            allPeriodic();
         } catch (Throwable t) {

@@ -14,7 +14,7 @@
 #define NUM_LEDS    5
 CRGB leds[NUM_LEDS];
 
-#define BRIGHTNESS          20
+#define BRIGHTNESS          255 //0 to 255
 #define FRAMES_PER_SECOND  80 //was 120
 
 
@@ -41,7 +41,7 @@ void setup() {
 
   FastLED.setBrightness(BRIGHTNESS);
   
-   Serial.begin(9600);
+   
    Wire.begin(4);                // join i2c bus with address #4 as a slave device
    Wire.onReceive(receiveEvent); // Registers a function to be called when a slave device receives a transmission from a master
    Wire.onRequest(requestEvent); // Register a function to be called when a master requests data from this slave device
@@ -50,31 +50,43 @@ void setup() {
 
 
 CRGB color=CRGB::Blue;
-boolean inputChange=true;
+int stripeLocation=0;
+int stripeWidth=4;
+boolean inputChange=false;
 
 void loop() {
   
 
-  if(inputChange){
-  if(input=="hit"){
-   color=CRGB::Red;
-   Serial.println("red");
-  }else if(input=="green"){
-    color=CRGB::Green;
-    Serial.println("green");
-  }else{
-    color=CRGB::Blue;
-    Serial.println("blue");
+  
+  if(input=="IDLE"){
+    sinelon();
+    // send the 'leds' array out to the actual LED strip
+    FastLED.show();  
+    // insert a delay to keep the framerate modest
+    FastLED.delay(1000/FRAMES_PER_SECOND); 
+  }else if(input=="SHOOT"){
+    if (inputChange) stripeLocation=0; //reset stripe
+
+     for (int dot=0; dot < NUM_LEDS; dot++) { 
+      leds[dot] = CRGB::Blue; //SET all to blue
+    }
+    for(int i=0; i<stripeWidth;i++){
+      int stripeDot=stripeLocation+i;
+      if(stripeDot<NUM_LEDS&&stripeDot>=0){ //prevent from going out of bounds
+        leds[stripeDot]=CRGB::Yellow; //set only stripe to yellow
+      }
+    }
+
+    stripeLocation++;
+    if(stripeLocation>=NUM_LEDS){
+      stripeLocation=1-stripeWidth; //make the strip appear to be entering
+    }
+
+    FastLED.show();
+    delay(30); //speed of stripe
+    
   }
 
- 
-  
-  }
-  sinelon();
-  // send the 'leds' array out to the actual LED strip
-  FastLED.show();  
-  // insert a delay to keep the framerate modest
-  FastLED.delay(1000/FRAMES_PER_SECOND); 
 }
 
 

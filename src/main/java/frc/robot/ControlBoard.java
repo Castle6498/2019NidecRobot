@@ -32,11 +32,9 @@ public class ControlBoard implements ControlBoardInterface {
         return mInstance;
     }
     private final XboxController mDriver;
-    private final XboxController mOperator;
     
 
     protected ControlBoard() {
-        mOperator = new XboxController(1);
         mDriver =new XboxController(0);
     }
 
@@ -166,134 +164,47 @@ public class ControlBoard implements ControlBoardInterface {
             return value;
         }
 
-        
-        boolean gear=false;
-            @Override
-            public boolean getLowGear() {
-                if(mDriver.getBumper(Hand.kRight)){
-                    gear=false;
-                }else if(mDriver.getBumper(Hand.kLeft))gear=true;
-
-                return gear;
-            }
-
-    //HATCH ----------------------------------------------------------------------
-    
         @Override
-        public boolean getHatchPanelCentering() {
-            return mOperator.getXButton();
-        }
-
-        @Override
-        public boolean getHatchPanelAlignment() {
-            return mOperator.getYButton();
-        }
-
-        @Override
-        public double getHatchPanelJog() {
-            double speed=0;
-            double left = mOperator.getTriggerAxis(Hand.kLeft);
-            double right = mOperator.getTriggerAxis(Hand.kRight);
-            if(right>.1) {
-                speed=right;			
-            }else if(left>.1) {
-                speed=-left;
-            }else {
-                speed=0;
-            }
-            speed*=.1;
-            return -speed;
-        }
-
-        @Override
-        public boolean getHatchPanelDeploy() {
-            return mDriver.getXButton();
-        }
-
-        @Override
-        public boolean getPlateHome() {
-            return mOperator.getRawButton(8);
-        }
-
-        boolean hardStops=false;
-        @Override
-        public boolean getHatchHardStops() {
-            if(mDriver.getYButtonReleased())hardStops=!hardStops;
-            return hardStops;
-        }
-
-        @Override
-        public boolean getHatchReset() {
-            return false;
-        }
-
-
-    //BALLS -------------------------------------------------------------------------
-
-     /*   @Override
-        public PickUpHeight getBallPickUp() {
-            if(mOperator.getAButton())return PickUpHeight.FLOOR;
-            else if (mOperator.getBButton()) return PickUpHeight.LOADING_STATION;
-            else return null;
-        }
-
-        @Override
-        public ShootHeight getBallShootPosition() {
-            int pos = mOperator.getPOV();
-            if(pos==270)return ShootHeight.CARGO_SHIP;
-            else if(pos==180) return ShootHeight.ROCKET_ONE;
-            else if (pos==90) return ShootHeight.ROCKET_TWO;
-            else return null;
-        }
-
-        @Override
-        public boolean getBallShoot() {
+        public boolean getStartIntake(){
             return mDriver.getAButton();
         }
 
         @Override
-        public CarryHeight getCarryBall() {
-            if(mOperator.getPOV()==0) return CarryHeight.LOW;
-            else return null;
+        public boolean getStopIntake(){
+            return mDriver.getBButton();
         }
-
+    
         @Override
-        public boolean getBallHome() {
-            return mOperator.getRawButtonReleased(7);
+        public boolean getUnfoldIntake(){
+            return mDriver.getYButton();
         }
-
+    
         @Override
-        public double getLiftJog() {
-            double speed=mOperator.getY(Hand.kLeft);
-            if(Math.abs(speed)<=.1){
-                speed=0;
-            }
-
-            speed*=.1;
-            return -speed;
+        public double getHoodAngle(){
+            return (180/Math.PI)*Math.atan2(-mDriver.getY(Hand.kRight),mDriver.getX(Hand.kRight));
         }
-
+    
         @Override
-        public double getWristJog() {
-            double speed=mOperator.getY(Hand.kRight);
-            if(Math.abs(speed)<=.1){
-                speed=0;
-            }
-
-            speed*=.75;
-            return speed;
+        public boolean getUpdateHoodAngle(){
+            return mDriver.getStickButton(Hand.kRight);
         }
-
-*/
    
+        @Override
+        public boolean getStartShoot() {
+            return mDriver.getBumper(Hand.kRight);
+        }
+
+        @Override
+        public boolean getStopShoot() {
+            return mDriver.getBumper(Hand.kLeft);
+        }
 
     //RUMBLE ------------------------------------------------------------------------------
 
         @Override
         public void setRumble(Controller c, RumbleSide type, double amount) {
             XboxController controller;
-            if(c==Controller.Driver) controller=mDriver;
-            else controller = mOperator;
+           controller=mDriver;
 
             switch(type){
                 case left:
@@ -321,65 +232,6 @@ public class ControlBoard implements ControlBoardInterface {
             setRumble(Controller.Driver, RumbleSide.both, amount);
             setRumble(Controller.Operator, RumbleSide.both, amount);
         }
-
-   //Climbing ---------------------------------------------------------------------------------
-
-        @Override
-        public boolean getSuspensionHome() {
-            return false;//mDriver.getRawButtonReleased(7);
-        }
-
-      //  @Override
-       // public PreClimbHeight getPreClimbHeight() {
-      //      if(mDriver.getPOV()==270) return ClimbingHelper.PreClimbHeight.MIDDLE;
-      //      else if(mDriver.getPOV()==0) return ClimbingHelper.PreClimbHeight.HIGH;
-      //      else return null;
-     //   }
-
-        @Override
-        public boolean getClimbLift() {
-            return mDriver.getPOV()==90;
-        }
-
-        @Override
-        public boolean getClimbStow() {
-            return mDriver.getPOV()==180;
-        }
-
-        @Override
-        public boolean getClimbFullBlast() {
-            return mDriver.getStickButtonReleased(Hand.kRight);
-        }
-
-        @Override
-        public double getClimbVerticleJog() {
-            double speed=mDriver.getY(Hand.kRight);
-                if(Math.abs(speed)<=.1){
-                    speed=0;
-                }
-
-                speed*=.03;
-                return -speed;
-        }
-
-        @Override
-        public double getClimbHorizontalJog() {
-            return mDriver.getX(Hand.kRight)*.5;
-        }
-
-    //MOTION PROFILE -----------------------------------------------------------------------------
-        @Override
-        public boolean enableMotionProfile() {
-            return mDriver.getRawButton(7); //left one;
-        }
-
-        
-        
-        @Override
-        public boolean holdMotionProfile() {
-            return mDriver.getRawButton(8); //right one;
-        }
-
    
 
    

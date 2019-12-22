@@ -20,52 +20,23 @@ public interface ControlBoardInterface {
 
     double getTurn();
 
-    boolean getLowGear();
+   
 
     boolean getDriveInverted();
 
-    // OPERATOR CONTROLS
-    boolean getHatchPanelCentering();
+    boolean getStartIntake();
 
-    boolean getHatchPanelAlignment();
+    boolean getStopIntake();
 
-    boolean getPlateHome();
+    boolean getUnfoldIntake();
 
-    double getHatchPanelJog();
+    double getHoodAngle();
 
-    boolean getHatchPanelDeploy();
+    boolean getUpdateHoodAngle();
 
-    boolean getHatchHardStops();
+    boolean getStartShoot();
 
-    boolean getHatchReset();
-
-   /* PickUpHeight getBallPickUp();
-
-    ShootHeight getBallShootPosition();
-
-    boolean getBallShoot();
-
-    CarryHeight getCarryBall();*/
-
-  //  boolean getBallHome();
-
-  //  double getLiftJog();
-
-  //  double getWristJog();
-
-    boolean getSuspensionHome();
-
-   // ClimbingHelper.PreClimbHeight getPreClimbHeight();
-
-    boolean getClimbLift();
-
-    boolean getClimbStow();
-
-    boolean getClimbFullBlast();
-
-    double getClimbVerticleJog();
-
-    double getClimbHorizontalJog();
+    boolean getStopShoot();
 
     public enum Controller {Driver,Operator}
     public enum RumbleSide {left, right, both}
@@ -74,12 +45,6 @@ public interface ControlBoardInterface {
     void setRumble(double amount);
 
     void rumbleOff();
-
-    boolean enableMotionProfile();
-
-   
-
-    boolean holdMotionProfile();
   
 
 }
