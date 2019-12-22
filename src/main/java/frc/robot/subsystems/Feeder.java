@@ -158,8 +158,14 @@ public class Feeder extends Subsystem {
     
     public synchronized void setMotor(double s){
        //LINDA be able to set both left and right motors, one is in the opposite direction (-s)
-        mLeftMotor.set(s);
+        
+       if (s==0){ //Disabling them prevents the whine, but stops them from holding position
+           mLeftMotor.disable();
+           mRightMotor.disable();
+       }else{
+       mLeftMotor.set(s);
         mRightMotor.set(-s);
+       }
     }
 
     public synchronized void setSystemState(SystemState s){
