@@ -179,39 +179,39 @@ public class Intake extends Subsystem {
 
     private SystemState handleLowering(){
         if(mStateChanged){
-           setActuator(Constants.kIntakeActuationSpeed);
+          // setActuator(Constants.kIntakeActuationSpeed);
         }
 
-        if(getMaxLimit()){
-            setActuator(0);
+      //  if(getMaxLimit()){
+            //setActuator(0);
             return SystemState.UNFOLDED;
-        }
+       // }
         
-        switch(mWantedState){
+      /*  switch(mWantedState){
             case IDLE:
                 return SystemState.RAISING;
             default:
                 return SystemState.LOWERING;
-        }
+        }*/
     }
 
     private SystemState handleRaising(){
         if(mStateChanged){
-           setActuator(-Constants.kIntakeActuationSpeed);
+           //setActuator(-Constants.kIntakeActuationSpeed);
         }
 
-        if(getMinLimit()){
-            setActuator(0);
+       // if(getMinLimit()){
+           // setActuator(0);
             return SystemState.IDLE;
-        }
+        //}
         
-        switch(mWantedState){
+        /*switch(mWantedState){
             case UNFOLD:
             case PICKUP:
                 return SystemState.LOWERING;
             default:
                 return SystemState.RAISING;
-        }
+        }*/
     }
     
     private void setRollers(double s){
@@ -225,10 +225,12 @@ public class Intake extends Subsystem {
 
     private boolean getMinLimit(){
         return mMinLimit.get();
+        //return true;
     }
    
     private boolean getMaxLimit(){
         return mMaxLimit.get();
+        //return true;
     }
 
     

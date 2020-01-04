@@ -30,6 +30,10 @@ public interface ControlBoardInterface {
 
     boolean getUnfoldIntake();
 
+    double getIntakeActuateSpeed();
+
+    boolean getIntakeActuateEnable();
+
     double getHoodAngle();
 
     boolean getUpdateHoodAngle();

@@ -103,14 +103,14 @@ public class Feeder extends Subsystem {
         }
     };
 
-    
+    SystemState mWantedState;
 
     private SystemState handleIdle() {
         if(mStateChanged){  
             stopMotor();
         }
         
-        return mSystemState;
+        return mWantedState;
     }
 
     private SystemState handleFeeding(double now){
@@ -119,7 +119,7 @@ public class Feeder extends Subsystem {
             setMotor(Constants.kFeederSpeed);
         }
 
-        return mSystemState;
+        return mWantedState;
     }
 
 
@@ -159,17 +159,16 @@ public class Feeder extends Subsystem {
     public synchronized void setMotor(double s){
        //LINDA be able to set both left and right motors, one is in the opposite direction (-s)
         
-       if (s==0){ //Disabling them prevents the whine, but stops them from holding position
-           mLeftMotor.disable();
-           mRightMotor.disable();
-       }else{
+      
+         //  System.out.println("Feeder at full power");
+           
        mLeftMotor.set(s);
         mRightMotor.set(-s);
-       }
+       
     }
 
     public synchronized void setSystemState(SystemState s){
-        mSystemState=s;
+        mWantedState=s;
     }
    
 
@@ -177,8 +176,7 @@ public class Feeder extends Subsystem {
 
         private void stopMotor(){
           //LINDA - set them to 0
-            mLeftMotor.set(0);
-            mRightMotor.set(0);
+            setMotor(0);
         }
 
 

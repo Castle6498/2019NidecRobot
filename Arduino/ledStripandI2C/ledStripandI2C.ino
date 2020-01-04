@@ -11,7 +11,7 @@
 #define DATA_PIN     13
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
-#define NUM_LEDS    5
+#define NUM_LEDS    14
 CRGB leds[NUM_LEDS];
 
 #define BRIGHTNESS          255 //0 to 255
@@ -27,7 +27,7 @@ CRGB leds[NUM_LEDS];
 static String _piOutput = "blank";//string to be sent to the robot
 
                
-static String input = "blank";  //string received from the robot
+static String input = "IDLE";  //string received from the robot
 
 
 
@@ -37,7 +37,7 @@ void setup() {
    // tell FastLED about the LED strip configuration
   FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   
-  
+  //Serial.begin(9600);
 
   FastLED.setBrightness(BRIGHTNESS);
   

@@ -139,7 +139,7 @@ public class ControlBoard implements ControlBoardInterface {
             
         }
 
-        boolean driveInverted=true;
+        boolean driveInverted=false;
         @Override
         public boolean getDriveInverted() {
             if(mDriver.getStickButtonReleased(Hand.kLeft)){
@@ -199,6 +199,16 @@ public class ControlBoard implements ControlBoardInterface {
             return mDriver.getBumper(Hand.kLeft);
         }
 
+        @Override
+        public double getIntakeActuateSpeed() {
+            return mDriver.getY(Hand.kRight)*.4;
+        }
+    
+        @Override
+        public boolean getIntakeActuateEnable() {
+            return mDriver.getXButton();
+        }
+
     //RUMBLE ------------------------------------------------------------------------------
 
         @Override
@@ -232,6 +242,8 @@ public class ControlBoard implements ControlBoardInterface {
             setRumble(Controller.Driver, RumbleSide.both, amount);
             setRumble(Controller.Operator, RumbleSide.both, amount);
         }
+
+   
    
 
    

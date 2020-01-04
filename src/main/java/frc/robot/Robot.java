@@ -161,6 +161,9 @@ public class Robot extends TimedRobot {
         if(mControlBoard.getStartShoot())mShooter.setWantedState(Shooter.WantedState.SHOOT);
         else if(mControlBoard.getStopShoot())mShooter.setWantedState(Shooter.WantedState.IDLE);
 
+        if(mControlBoard.getIntakeActuateEnable()) mIntake.setActuator(mControlBoard.getIntakeActuateSpeed());
+        else mIntake.setActuator(0);
+
            allPeriodic();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);

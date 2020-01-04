@@ -48,7 +48,7 @@ public class Drive {
 
         mRightSlave.set(signal.getRight());
         mLeftSlave.set(signal.getLeft());
-     System.out.println(signal.getRight() + " "+signal.getLeft());
+    // System.out.println(signal.getRight() + " "+signal.getLeft());
     }
     
    

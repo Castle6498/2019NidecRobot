@@ -150,7 +150,7 @@ public class Flywheel extends Subsystem {
             case IDLE:
                 return SystemState.IDLE;
             case SHOOT:
-                if(getVelocity()>=Constants.kShooterMinVelocity){
+                if(-getVelocity()>=Constants.kShooterMinVelocity){
                     return SystemState.SHOOTING;
                 }
             default:

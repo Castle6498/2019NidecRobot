@@ -30,7 +30,7 @@ public class Constants extends ConstantsBase {
     
     //Flywheel
 
-        public static double kShooterMinVelocity = 0;
+        public static double kShooterMinVelocity = 670;
 
          // Shooter tuning parameters
             public static boolean kIsShooterTuning = false; //SET TRUE if you want to tune shooter basically starts at tuning floor and steps by set increment
@@ -39,7 +39,7 @@ public class Constants extends ConstantsBase {
             public static double kShooterTuningRpmStep = 50; //tuning increment
             public static double kShooterTuningRpm = 3500.0; //this doesn't appear to be used ever, probably an old setting
         // Shooter constants
-            public static final int kShooterId = 2;//TODO: Change this
+            public static final int kShooterId = 1;//TODO: Change this
         // Shooter gains
             public static double kShooterTalonKP = 0.16;
             public static double kShooterTalonKI = 0.00008;
@@ -121,13 +121,13 @@ public class Constants extends ConstantsBase {
         public static final int kIntakeSparkPort=1;
         public static final int kLinearActuatorSparkPort=0;
 
-        public static final double kIntakePickUpSpeed=.8;
+        public static final double kIntakePickUpSpeed=.45;
 
         //Linear Actuator Settings
         public static final int kIntakeMinLimitPort = 2;
         public static final int kIntakeMaxLimitPort = 3;
 
-        public static final double kIntakeActuationSpeed = .25;
+        public static final double kIntakeActuationSpeed = .1;
     
     //Hood
         
